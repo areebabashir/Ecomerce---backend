@@ -1,4 +1,4 @@
-import userModel from "../models/userModel.js";
+import users from "../models/userModel.js"
 import { hashPassword, comparePassword } from "./../helpers/authHelper.js";
 import JWT from "jsonwebtoken";
 
@@ -22,7 +22,7 @@ export const registerController = async (req, res) => {
             return res.send({ error: "Address is Required" });
         }
         //check user
-        const exisitingUser = await userModel.findOne({ email });
+        const exisitingUser = await users.findOne({ email });
         //exisiting user
         if (exisitingUser) {
             return res.status(200).send({
@@ -56,6 +56,16 @@ export const registerController = async (req, res) => {
     }
 };
 
+export const getAllUsers = async (req, res) => {
+    try {
+      const allUsers = await users.find();
+      res.status(200).json(allUsers);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'An error occurred' });
+    }
+  };
+
 
 //loginnnnnn
 export const loginController = async (req, res) => {
@@ -69,7 +79,7 @@ export const loginController = async (req, res) => {
             });
         }
         //check user
-        const user = await userModel.findOne({ email });
+        const user = await users.findOne({ email });
         if (!user) {
             return res.status(404).send({
                 success: false,
@@ -133,7 +143,7 @@ export const forgotPasswordController = async () => {
             });
         }
         ///////checkkkkkkkkkkkkkkkkkkk
-        const user = await userModel.findOne({ email, answer })
+        const user = await users.findOne({ email, answer })
         ///////////////validation
         if (!user) {
             return res.status(404).send({
@@ -143,7 +153,7 @@ export const forgotPasswordController = async () => {
         }
 
         const hashed = await hashPassword(newPassword);
-        await userModel.findByIdAndUpdate(user._id, { password: hashed });
+        await users.findByIdAndUpdate(user._id, { password: hashed });
         res.status(200).send({
             success: true,
             message: "password reset sucessfull",
