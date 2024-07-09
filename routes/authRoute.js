@@ -5,10 +5,15 @@ import {
   loginController,
   testController,
   forgotPasswordController,
+  getAllUsers,
 } from "../controllers/authController.js";
 import { requireSignIn, isAdmin } from "../middlewares/authMiddleware.js";
 //router object
 const router = express.Router();
+
+//get all user
+router.get("/all", getAllUsers);
+
 
 //routing
 //REGISTER || METHOD POST
@@ -18,14 +23,18 @@ router.post("/register", registerController);
 router.post("/login", loginController);
 
 //forget passworrd || post
-router.post("/forgot-password", forgotPasswordController);
+router.post("/ForgetPassword", forgotPasswordController);
 //test routes
 router.get("/test", requireSignIn, isAdmin, testController);
 
 //protected route auth
+//user
 router.get("/user-auth", requireSignIn, (req, res) => {
   res.status(200).send({ ok: true });
 });
-
+//adminn
+router.get("/admin-auth", requireSignIn, isAdmin, (req, res) => {
+  res.status(200).send({ ok: true });
+});
 
 export default router;

@@ -27,7 +27,7 @@ export default mongoose.model("users", new mongoose.Schema(
     },
     answer: {
       type: String,
-      required: false,
+      required: true,
     },
     role: {
       type: Number,
