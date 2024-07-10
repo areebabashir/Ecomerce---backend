@@ -36,7 +36,7 @@ export const registerController = async (req, res) => {
         //register user
         const hashedPassword = await hashPassword(password);
         //save
-        const user = await new userModel({
+        const user = await new users({
             name,
             email,
             phone,
@@ -98,7 +98,7 @@ export const loginController = async (req, res) => {
             });
         }
         //token
-        const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        const token = await JWT.sign({ _id: user._id, role: user.role, name: user.name, email: user.email }, process.env.JWT_SECRET, {
             expiresIn: "7d",
         });
         res.status(200).send({
@@ -110,6 +110,7 @@ export const loginController = async (req, res) => {
                 email: user.email,
                 phone: user.phone,
                 adddress: user.address,
+                role: user.role
             },
             token,
         });
@@ -126,7 +127,7 @@ export const loginController = async (req, res) => {
 
 //forgotPasswordController);
 
-export const forgotPasswordController = async () => {
+export const forgotPasswordController = async (req, res) => {
     try {
         const { email, answer, newPassword } = req.body
         if (!email) {
@@ -162,19 +163,15 @@ export const forgotPasswordController = async () => {
             success: true,
             message: "password reset sucessfull",
         });
-    } catch {
+    } catch (error) {
         console.log(error)
         res.status(500).send({
             success: false,
-            message: "Error",
-            error
+            message: "Error" + error
+            
         });
     }
 }
-
-
-
-
 
 
 
