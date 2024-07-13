@@ -12,6 +12,7 @@ import authRoutes from "./routes/authRoute.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import cors from "cors"
+import bodyParser from 'body-parser';
 
 //configure env
 
@@ -22,6 +23,13 @@ connectDB();
 
 const app = express();
 
+
+
+// Parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Parse application/json
+app.use(bodyParser.json());
 
 //middelwares
 app.use(cors());
