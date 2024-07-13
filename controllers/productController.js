@@ -1,62 +1,93 @@
-import fs from "fs";
-import slugify from "slugify";
-import productModel from "../models/productModel.js";
-
-const validateProductFields = (fields, photo) => {
-  const { name, description, price, category, quantity } = fields;
-
-  if (!name) {
-    throw { status: 500, message: "Name is required" };
-  }
-  if (!description) {
-    throw { status: 500, message: "Description is required" };
-  }
-  if (!price) {
-    throw { status: 500, message: "Price is required" };
-  }
-  if (!category) {
-    throw { status: 500, message: "Category is required" };
-  }
-  if (!quantity) {
-    throw { status: 500, message: "Quantity is required" };
-  }
-  if (photo && photo.size > 1000000) {
-    throw { status: 500, message: "Photo is required and should be less than 1MB" };
-  }
-};
+import fs from 'fs';
+import slugify from 'slugify';
+import productModel from '../models/productModel.js';
 
 export const createProductController = async (req, res) => {
   try {
     const { name, description, price, category, quantity, shipping } = req.fields;
     const { photo } = req.files;
 
-    validateProductFields(req.fields, photo);
+    // Validation
+    if (!name || !description || !price || !category || !quantity) {
+      return res.status(400).send({ error: "All fields are required" });
+    }
+
+    if (photo && photo.size > 1000000) {
+      return res.status(400).send({ error: "Photo should be less than 1mb in size" });
+    }
 
     const slug = slugify(name);
-    const newProduct = new productModel({ ...req.fields, slug });
+    const newProduct = new productModel({
+      name,
+      slug,
+      description,
+      price,
+      category,
+      quantity,
+      shipping: shipping === 'true',
+    });
 
     if (photo) {
-      newProduct.photo.data = fs.readFileSync(photo.path);
-      newProduct.photo.contentType = photo.type;
+      newProduct.photo = {
+        data: fs.readFileSync(photo.path),
+        contentType: photo.type,
+      };
     }
 
     await newProduct.save();
 
+    // Remove photo data from the response
+    const productResponse = newProduct.toObject();
+    delete productResponse.photo;
+
     res.status(201).send({
       success: true,
       message: "Product created successfully",
-      product: newProduct,
+      product: productResponse,
     });
   } catch (error) {
     console.error("Error creating product:", error);
-    const status = error.status || 500;
-    res.status(status).send({
+    res.status(500).send({
       success: false,
       message: error.message || "Error creating product",
     });
   }
 };
+// export const createProductController = async (req, res) => {
+//   try {
+//     const { name, description, price, category, quantity, shipping } = req.fields;
+//     const { photo } = req.files;
 
+//     // Validate fields
+//     validateProductFields(req.fields, photo);
+
+//     const slug = slugify(name);
+//     const newProduct = new productModel({ ...req.fields, slug });
+
+//     if (photo) {
+//       newProduct.photo.data = fs.readFileSync(photo.path);
+//       newProduct.photo.contentType = photo.type;
+//     }
+
+//     await newProduct.save();
+
+//     const productResponse = newProduct.toObject();
+//     delete productResponse.photo;
+
+//     res.status(201).send({
+//       success: true,
+//       message: "Product created successfully",
+//       product: productResponse,
+//     });
+//   } catch (error) {
+//     console.error("Error creating product:", error);
+//     const status = error.status || 500;
+//     res.status(status).send({
+//       success: false,
+//       message: error.message || "Error creating product",
+//     });
+//   }
+// };
 export const getProductController = async (req, res) => {
   try {
     const products = await productModel
