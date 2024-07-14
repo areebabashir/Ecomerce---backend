@@ -1,64 +1,50 @@
-
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
-
-
 
 import express from 'express';
 import colors from 'colors';
-import connectDB from "./config/db.js";
-import morgan from "morgan";
-import formidable from 'express-formidable';
-
-import authRoutes from "./routes/authRoute.js";
-import productRoutes from "./routes/productRoutes.js";
-import categoryRoutes from "./routes/categoryRoutes.js";
-import cors from "cors"
+import connectDB from './config/db.js';
+import morgan from 'morgan';
+import cors from 'cors';
 import bodyParser from 'body-parser';
 
-//configure env
+import authRoutes from './routes/authRoute.js';
+import productRoutes from './routes/productRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
-
-//databse config
+// Database configuration
 connectDB();
-
 
 const app = express();
 
-
-
-// Parse application/x-www-form-urlencoded
+// Middleware
+app.use(cors());
+app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Parse application/json
 app.use(bodyParser.json());
 
-//middelwares
-app.use(cors());
-app.use(express.json());
-app.use(morgan("dev"));
-app.use(formidable());
+// Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/category', categoryRoutes);
+app.use('/api/v1/product', productRoutes);
 
-//routes
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/category", categoryRoutes);
-app.use("/api/v1/product", productRoutes);
-
-//rest api
-app.get("/", (req, res) => {
-    res.send("<h1>Welcome to ecommerce app</h1>");
+// Test API endpoint
+app.get('/', (req, res) => {
+  res.send('<h1>Welcome to ecommerce app</h1>');
 });
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error details:', err);
+  res.status(500).json({
+    message: 'Something broke!',
+    error: err.message
+  });
+});
 
 const PORT = process.env.PORT || 8080;
 
-
-
-
-//run listen
+// Start server
 app.listen(PORT, () => {
-    console.log(
-        `Server Running on port ${PORT}`.bgCyan
-            .white
-    );
+  console.log(`Server Running on port ${PORT}`.bgCyan.white);
 });
