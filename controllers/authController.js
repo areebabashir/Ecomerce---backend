@@ -62,13 +62,13 @@ export const registerController = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
     try {
-      const allUsers = await users.find();
-      res.status(200).json(allUsers);
+        const allUsers = await users.find();
+        res.status(200).json(allUsers);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'An error occurred' });
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred' });
     }
-  };
+};
 
 
 //loginnnnnn
@@ -168,7 +168,7 @@ export const forgotPasswordController = async (req, res) => {
         res.status(500).send({
             success: false,
             message: "Error" + error
-            
+
         });
     }
 }
@@ -182,5 +182,54 @@ export const testController = (req, res) => {
     } catch (error) {
         console.log(error);
         res.send({ error });
+    }
+};
+//update prfole
+export const updateProfileController = async (req, res) => {
+    try {
+        const { name, email, password, address, phone } = req.body;
+        const userId = req.user._id;
+
+        // Fetch the current user
+        const user = await users.findById(userId);
+
+        // Check if the user exists
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Validate the new password, if provided
+        if (password && password.length < 6) {
+            return res.status(400).json({ error: "Password must be at least 6 characters long" });
+        }
+
+        // Hash the new password if provided
+        const hashedPassword = password ? await hashPassword(password) : undefined;
+
+        // Update the user fields
+        const updatedUser = await users.findByIdAndUpdate(
+            userId,
+            {
+                name: name || user.name,
+                email: email || user.email,
+                password: hashedPassword || user.password,
+                phone: phone || user.phone,
+                address: address || user.address,
+            },
+            { new: true } // Return the updated document
+        );
+
+        res.status(200).send({
+            success: true,
+            message: "Profile updated successfully",
+            updatedUser,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            success: false,
+            message: "Error while updating profile",
+            error,
+        });
     }
 };
